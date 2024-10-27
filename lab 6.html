@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INST377 Lab 6 - Leaflet Map</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""/>
+    
+    <!-- CSS for map height, marker and font size -->
+    <style>
+        #map { 
+            height: 700px; 
+            width: 100%; 
+        }
+        .marker-info {
+            margin-top: 10px;
+            font-size: 1.2em; 
+        }
+        
+        .marker-info div {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Map container -->
+    <div id="map"></div>
+
+    <!-- Marker information section -->
+    <div class="marker-info">
+        <div id="marker1">Marker 1: Loading...</div>
+        <div id="locality1">Locality: Loading...</div>
+        <div id="marker2">Marker 2: Loading...</div>
+        <div id="locality2">Locality: Loading...</div>
+        <div id="marker3">Marker 3: Loading...</div>
+        <div id="locality3">Locality: Loading...</div>
+    </div>
+
+    <!-- Leaflet JavaScript (after CSS) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
+    <!-- JavaScript for initializing map and markers -->
+    <script>
+        // Initialize map centered on the USA
+        const map = L.map('map').setView([37.0902, -95.7129], 4);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Random coordinate generator function
+        function getRandomInRange(from, to, fixed) {
+            return (Math.random() * (to - from) + from).toFixed(fixed) * 1;
+        }
+
+        // Generate three sets of random coordinates
+        const coords = [
+            { lat: getRandomInRange(30, 35, 3), lng: getRandomInRange(-100, -90, 3) },
+            { lat: getRandomInRange(30, 35, 3), lng: getRandomInRange(-100, -90, 3) },
+            { lat: getRandomInRange(30, 35, 3), lng: getRandomInRange(-100, -90, 3) }
+        ];
+
+        // Add markers and fetch locality for each coordinate
+        coords.forEach((coord, index) => {
+            // Add marker to the map
+            const marker = L.marker([coord.lat, coord.lng]).addTo(map);
+            
+            // Display the coordinates in the HTML below the map
+            document.getElementById(`marker${index + 1}`).textContent = 
+                `Marker ${index + 1} (Lat: ${coord.lat}, Lng: ${coord.lng})`;
+            
+            // Fetch locality information from the API
+            fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${coord.lat}&longitude=${coord.lng}&localityLanguage=en`)
+                .then(response => response.json())
+                .then(data => {
+                    // Display the locality in the HTML
+                    document.getElementById(`locality${index + 1}`).textContent = 
+                        `Locality: ${data.locality || 'Unknown'}`;
+                })
+                .catch(error => {
+                    console.error("Error fetching locality data:", error);
+                    document.getElementById(`locality${index + 1}`).textContent = "Locality: Error fetching data";
+                });
+        });
+    </script>
+</body>
+</html>
